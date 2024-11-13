@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Chat Room</title>
+    </head>
+    <body>
+        <h1>Chat:</h1>
+
+        <form id="form">
+            <input type="text" name="message" />
+        </form>
+
+        <br />
+        <h1>Messages:</h1>
+        <div id="messages"></div>
+
+        <!-- <script type="text/javascript" src="chat/lobby.js"></script> -->
+        <script type="text/javascript">
+            let url = `ws://${window.location.host}/ws/socket-server/`;
+
+            const socket = new WebSocket(url);
+
+            const logSocketMessage = (data) => {
+                console.log("From Server: ", data);
+            };
+
+            let message_box = document.getElementById("messages");
+
+            const appendMessageToDOM = (msg) => {
+                let msg_element = document.createElement("p");
+                msg_element.innerHTML = msg;
+                message_box.appendChild(msg_element);
+            };
+
+            const handleMessage = (e) => {
+                let data = JSON.parse(e.data);
+                logSocketMessage(data);
+
+                if (data.type === "chat") {
+                    appendMessageToDOM(data["message"]);
+                }
+            };
+
+            socket.onmessage = handleMessage;
+
+            let form = document.getElementById("form");
+
+            const handleMessageSubmission = (e) => {
+                e.preventDefault();
+
+                let message = e.target.message.value;
+                socket.send(
+                    JSON.stringify({
+                        message: message,
+                    }),
+                );
+
+                form.reset();
+            };
+
+            form.addEventListener("submit", handleMessageSubmission);
+        </script>
+    </body>
+</html>
